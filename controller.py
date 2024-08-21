@@ -62,3 +62,10 @@ class ServoController:
 
     def degrees_to_units(self, degrees):
         return int(degrees * DEGREES_TO_UNITS)
+    
+    def units_to_degrees(self, units):
+        return int(units / DEGREES_TO_UNITS)
+    
+    def get_motor_degrees(self)->int:
+        return self.units_to_degrees(self.servo.read_encoder_value_addition())
+    

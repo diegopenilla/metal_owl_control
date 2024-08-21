@@ -8,8 +8,32 @@ from controller import ServoController
 import threading
 import time
 from datetime import datetime
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+# Initialize the FastAPI app with lifespan context
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global execution_thread, stop_event
+
+    # Code to run during startup
+    stop_event.clear()  # Ensure the stop event is cleared
+    file_path = "instructions/sequence.csv"
+
+    if os.path.exists(file_path):
+        execution_thread = threading.Thread(target=loop_sequence, args=(file_path,))
+        execution_thread.start()
+    else:
+        print("sequence.csv not found. Please ensure the file exists in the 'instructions' directory.")
+    
+    yield  # Run the app
+
+    # Code to run during shutdown
+    stop_event.set()  # Signal to stop any ongoing sequence
+    if execution_thread and execution_thread.is_alive():
+        execution_thread.join()  # Wait for the thread to finish
+    servo_controller.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 # Initialize the ServoController
 servo_controller = ServoController()
@@ -67,27 +91,15 @@ def loop_sequence(file_path: str):
                 last_step_info['elapsed_time'] = None
 
         except Exception as e:
-            print(f"Error executing sequence: {e}")
-            print(e)
+            # print(f"Error executing sequence: {e}")
+            # print(e)
             break
-        # Start again from the beginning after finishing the sequence
+
         if not stop_event.is_set():
             print("Sequence completed. Restarting...")
 
-@app.on_event("startup")
-def startup_event():
-    global execution_thread, stop_event
-    stop_event.clear()  # Ensure the stop event is cleared
-    file_path = "instructions/sequence.csv"
-
-    if os.path.exists(file_path):
-        execution_thread = threading.Thread(target=loop_sequence, args=(file_path,))
-        execution_thread.start()
-    else:
-        print("sequence.csv not found. Please ensure the file exists in the 'instructions' directory.")
-
 @app.get("/execute_position")
-def execute_position(degrees: int, speed: int, duration: float, label: str):
+def execute_position(degrees: int, speed: int, duration: float, label: str ):
     try:
         servo_controller.execute_instruction(degrees, speed, duration, label)
         return {"status": "success", "message": f"Executed {label} to {degrees} degrees at speed {speed}"}
@@ -134,7 +146,7 @@ def get_last_step_info():
         last_step_info['elapsed_time'] = (datetime.now() - last_step_info['start_time']).total_seconds()
     
     return {
-        "degrees": last_step_info['degrees'],
+        "degrees": servo_controller.get_motor_degrees(),
         "speed": last_step_info['speed'],
         "duration": last_step_info['duration'],
         "label": last_step_info['label'],
@@ -143,14 +155,5 @@ def get_last_step_info():
         "step_number": last_step_info['step_number'],
     }
 
-@app.on_event("shutdown")
-def shutdown_event():
-    global stop_event
-
-    stop_event.set()  # Signal to stop any ongoing sequence
-    if execution_thread and execution_thread.is_alive():
-        execution_thread.join()  # Wait for the thread to finish
-    servo_controller.shutdown()
-
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=9120)

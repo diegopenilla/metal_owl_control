@@ -5,7 +5,7 @@ import requests
 import time
 
 # Define the FastAPI server URL
-API_URL = "http://localhost:8000"
+API_URL = "http://localhost:9120"
 
 # Ensure the /instructions folder exists
 if not os.path.exists('instructions'):
@@ -38,7 +38,7 @@ with st.sidebar:
     with st.container():
         st.header("Choose Sequence")
         file_list = [f for f in os.listdir('instructions') if f.endswith('.csv')]
-        selected_file = st.selectbox("", file_list)
+        selected_file = st.selectbox("Choose a file", file_list)
 
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -59,11 +59,15 @@ with st.sidebar:
         
         with col3:
             if st.button("Stop"):
+                stop_message = st.empty()
+                stop_message.info("Stopping motor. Please wait ")
                 response = requests.get(f"{API_URL}/emergency_stop")
                 if response.status_code == 200:
                     st.error(response.json()['message'])
                 else:
                     st.error(response.json()['detail'])
+                
+                stop_message.empty()
 
     
     # Motor Control Section

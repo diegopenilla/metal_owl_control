@@ -5,7 +5,7 @@ import os
 import requests
 
 # Define the FastAPI server URL
-API_URL = "http://localhost:8000"
+API_URL = "http://localhost:9120"
 
 # Initialize session state variables
 if 'degrees' not in st.session_state:
