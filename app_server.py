@@ -10,6 +10,22 @@ API_URL = "http://localhost:9120"
 if not os.path.exists('instructions'):
     os.makedirs('instructions')
 
+# Hide the "Running..." text using CSS
+hide_running_text = """
+    <style>
+    [data-testid="stStatusWidget"] {
+        display: none !important;
+    }
+    [data-testid="stHeader"] {
+        display: none !important;
+    }
+    </style>
+"""
+
+# Inject the custom CSS into the app
+st.markdown(hide_running_text, unsafe_allow_html=True)
+
+
 # Default sequence file
 default_sequence_file = "instructions/sequence.csv"
 
@@ -33,34 +49,13 @@ with st.sidebar:
         file_list = [f for f in os.listdir('instructions') if f.endswith('.csv')]
         selected_file = st.selectbox("Choose a file", file_list)
 
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            if st.button("Load Sequence"):
-                if selected_file:
-                    file_path = os.path.join("instructions", selected_file)
-                    st.session_state['sequence_df'] = pd.read_csv(file_path)
-                    st.success(f"Loaded sequence from {selected_file}")
 
-        with col2:
-            if st.button("Play"):
-                if selected_file:
-                    response = requests.get(f"{API_URL}/run_sequence", params={"file_path": os.path.join("instructions", selected_file)})
-                    if response.status_code == 200:
-                        st.success(response.json()['message'])
-                    else:
-                        st.error(response.json()['detail'])
+        if st.button("Load Sequence"):
+            if selected_file:
+                file_path = os.path.join("instructions", selected_file)
+                st.session_state['sequence_df'] = pd.read_csv(file_path)
+                st.success(f"Loaded sequence from {selected_file}")
 
-        with col3:
-            if st.button("Stop"):
-                stop_message = st.empty()
-                stop_message.info("Stopping motor. Please wait ")
-                response = requests.get(f"{API_URL}/emergency_stop")
-                if response.status_code == 200:
-                    st.error(response.json()['message'])
-                else:
-                    st.error(response.json()['detail'])
-                stop_message.empty()
-    
     # Motor Control Section
     st.header("Add Step")
     with st.container():
@@ -99,8 +94,26 @@ with st.sidebar:
                     st.success(f"Sequence saved as {file_name}")
                 else:
                     st.warning("No sequence to save.")
-    
+                    
 # Main content
+if st.button("Play"):
+    if selected_file:
+        response = requests.get(f"{API_URL}/run_sequence", params={"file_path": os.path.join("instructions", selected_file)})
+        if response.status_code == 200:
+            st.success(response.json()['message'])
+        else:
+            st.error(response.json()['detail'])
+
+if st.button("Stop"):
+    stop_message = st.empty()
+    stop_message.info("Stopping motor. Please wait ")
+    response = requests.get(f"{API_URL}/emergency_stop")
+    if response.status_code == 200:
+        st.error(response.json()['message'])
+    else:
+        st.error(response.json()['detail'])
+    stop_message.empty()
+    
 st.write(f"### Loaded File: `{selected_file}`" if selected_file else "### No file loaded.")
 st.dataframe(st.session_state['sequence_df'])
 
