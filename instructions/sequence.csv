@@ -1,3 +1,4 @@
-Degrees,Speed,Duration,Label
-0,50,1.0,Origin
-3600,30,30.0,First
+Degrees,Speed,Duration,Acceleration,Label
+0,50,1.0,0,Origin
+360,300,10.0,10,First
+0,100,3.0,0,Second

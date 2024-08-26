@@ -46,6 +46,7 @@ execution_thread = None
 last_step_info = {
     "degrees": None,
     "speed": None,
+    "acceleration": None,
     "duration": None,
     "label": None,
     "start_time": None,
@@ -57,6 +58,7 @@ last_step_info = {
 class PositionCommand(BaseModel):
     degrees: int
     speed: int
+    acceleration: int  # Added acceleration field
     duration: float
     label: str
 
@@ -78,6 +80,7 @@ def loop_sequence(file_path: str):
                 last_step_info.update({
                     "degrees": row['Degrees'],
                     "speed": row['Speed'],
+                    "acceleration": row['Acceleration'],
                     "duration": row['Duration'],
                     "label": row['Label'],
                     "start_time": datetime.now(),
@@ -85,7 +88,7 @@ def loop_sequence(file_path: str):
                 })
                 
                 # Execute the instruction
-                servo_controller.execute_instruction(row['Degrees'], row['Speed'], row['Duration'], row['Label'])
+                servo_controller.execute_instruction(row['Degrees'], row['Speed'], row['Acceleration'], row['Duration'], row['Label'])
 
                 # Reset the elapsed time after execution
                 last_step_info['elapsed_time'] = None
@@ -99,10 +102,10 @@ def loop_sequence(file_path: str):
             print("Sequence completed. Restarting...")
 
 @app.get("/execute_position")
-def execute_position(degrees: int, speed: int, duration: float, label: str ):
+def execute_position(degrees: int, speed: int, acceleration: int, duration: float, label: str ):
     try:
-        servo_controller.execute_instruction(degrees, speed, duration, label)
-        return {"status": "success", "message": f"Executed {label} to {degrees} degrees at speed {speed}"}
+        servo_controller.execute_instruction(degrees, speed, acceleration, duration, label)
+        return {"status": "success", "message": f"Executed {label} to {degrees} degrees at speed {speed} with acceleration {acceleration}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -148,6 +151,7 @@ def get_last_step_info():
     return {
         "degrees": servo_controller.get_motor_degrees(),
         "speed": last_step_info['speed'],
+        "acceleration": last_step_info['acceleration'],
         "duration": last_step_info['duration'],
         "label": last_step_info['label'],
         "elapsed_time": last_step_info['elapsed_time'],

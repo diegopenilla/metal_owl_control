@@ -288,7 +288,7 @@ class MksServo:
                         if not (message.data[0] == op_code and len(message.data) == response_length):
                             logging.error(f"Unexpected response length or opcode.")                        
                         status = message.data                                                                
-                except InvalidCRCError:
+                except InvalidCRCError as e:
                     logging.error(f"CRC check failed for the message: {e}")            
 
         try:        
@@ -332,5 +332,4 @@ class MksServo:
         try:
             return status_enum(status_int)
         except ValueError:
-            raise status_enum_exception(f"No enum member with value {status_int}")                     
-        
+            raise status_enum_exception(f"No enum member with value {status_int}")
