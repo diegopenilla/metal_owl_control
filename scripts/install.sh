@@ -16,12 +16,11 @@ echo "Installing WIFI Access Point..."
 echo "=============================="
 sudo apt-get install -y \
      libgtk-3-dev build-essential gcc g++ pkg-config make hostapd libqrencode-dev libpng-dev iptables
-
+cd $METAL_OWL_CONTROL_DIR
 git clone https://github.com/lakinduakash/linux-wifi-hotspot
 cd linux-wifi-hotspot
 make
 sudo make install
-rm -rf .git
 
 #Configure AP
 cp $METAL_OWL_CONTROL_DIR/scripts/services/create_ap.service /lib/systemd/system/create_ap.service

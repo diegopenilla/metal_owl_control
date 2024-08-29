@@ -5,7 +5,7 @@
 
 ```bash
 #chmod +x install.sh
-bash install.sh
+sudo bash scripts/install.sh
 ```
 
 # Run 
@@ -17,10 +17,8 @@ bash install.sh
 # in env environment
 # source env/bin/activate
 # chmod +x run.sh
-bash run.sh
+sudo bash scripts/run_owl_server.sh
 ```
-
-
 
 
 
