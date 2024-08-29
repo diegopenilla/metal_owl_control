@@ -1,0 +1,12 @@
+[Unit]
+Description=Owl Service
+After=network.target
+
+[Service]
+WorkingDirectory=/home/owl/metal_owl_control
+ExecStart=/home/owl/metal_owl_control/scripts/run_owl_server.sh
+ExecStop=/bin/kill -s TERM $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

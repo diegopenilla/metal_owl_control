@@ -22,9 +22,13 @@ cd linux-wifi-hotspot
 make
 sudo make install
 
+
+sudo iw dev wlan0 interface add ap0 type __ap 
+pkexec --user root create_ap ap0 wlan0 'OWL1AP' 'ramones554433' --mkconfig /etc/create_ap.conf --freq-band 2.4
+
 #Configure AP
-cp $METAL_OWL_CONTROL_DIR/scripts/services/create_ap.service /lib/systemd/system/create_ap.service
-cp $METAL_OWL_CONTROL_DIR/scripts/services/create_ap.conf /etc/create_ap.conf
+#cp $METAL_OWL_CONTROL_DIR/scripts/services/create_ap.service /lib/systemd/system/create_ap.service
+#cp $METAL_OWL_CONTROL_DIR/scripts/services/create_ap.conf /etc/create_ap.conf
 
 #Enable Wifi AP Service
 systemctl enable create_ap
@@ -61,7 +65,7 @@ sudo udevadm trigger
 
 echo "Udev rule installation complete."
 
-
+#-------------------------------------------------------------------
 echo ""
 echo "Installing python dependencies..."
 echo "=============================="
@@ -71,7 +75,18 @@ python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
 
+#-------------------------------------------------------------------
+echo ""
+echo "Setup Owl Service..."
+echo "=============================="
 
+sudo cp $METAL_OWL_CONTROL_DIR/scripts/services/owl.service /etc/systemd/system/owl.service
+sudo chmod +x $METAL_OWL_CONTROL_DIR/scripts/run_owl_server.sh
+
+
+#-------------------------------------------------------------------
 echo ""
 echo "Reboot to complete installation"
 echo "=============================="
+
+
