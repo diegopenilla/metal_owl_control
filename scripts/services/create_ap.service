@@ -1,0 +1,16 @@
+[Unit]
+Description=Create AP Service
+After=network.target
+
+[Service]
+Type=simple
+# Run the command to add the AP interface before starting the create_ap service
+ExecStartPre=/sbin/iw dev wlan0 interface add ap0 type __ap
+# Start the create_ap service with the specified configuration file
+ExecStart=/usr/bin/create_ap --config /etc/create_ap.conf
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

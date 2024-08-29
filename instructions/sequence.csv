@@ -1,4 +1,5 @@
 Degrees,Speed,Duration,Acceleration,Label
 0,50,1.0,0,Origin
-360,300,10.0,10,First
+360,300,6.0,10,First
 0,100,3.0,0,Second
+270,50,5.0,1,Command Label
