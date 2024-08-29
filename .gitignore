@@ -1,5 +1,6 @@
 env/
 venv/
 linux-wifi-hotspot/
+.vscode/
 __pycache__/
 **/__pycache__/
