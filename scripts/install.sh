@@ -8,7 +8,7 @@ echo ""
 echo "Installing apt dependencies..."
 echo "=============================="
 sudo apt update
-sudo apt install -y git
+sudo apt install -y git pip
 
 #-------------------------------------------------------------------
 echo ""
@@ -68,6 +68,11 @@ echo "Installing python dependencies..."
 echo "=============================="
 # create new virtual environment
 cd $METAL_OWL_CONTROL_DIR
-python3 -m env env
+python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
+
+
+echo ""
+echo "Reboot to complete installation"
+echo "=============================="
