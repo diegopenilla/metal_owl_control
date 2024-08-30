@@ -24,7 +24,7 @@ sudo make install
 
 
 sudo iw dev wlan0 interface add ap0 type __ap 
-pkexec --user root create_ap ap0 wlan0 'OWL1AP' 'ramones554433' --mkconfig /etc/create_ap.conf --freq-band 2.4
+pkexec --user root create_ap ap0 wlan0 'OWLAP' 'changeme554433' --mkconfig /etc/create_ap.conf --freq-band 2.4
 
 #Configure AP
 #cp $METAL_OWL_CONTROL_DIR/scripts/services/create_ap.service /lib/systemd/system/create_ap.service
