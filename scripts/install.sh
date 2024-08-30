@@ -82,6 +82,7 @@ echo "=============================="
 
 sudo cp $METAL_OWL_CONTROL_DIR/scripts/services/owl.service /etc/systemd/system/owl.service
 sudo chmod +x $METAL_OWL_CONTROL_DIR/scripts/run_owl_server.sh
+systemctl enable owl
 
 
 #-------------------------------------------------------------------
