@@ -58,12 +58,14 @@ else
     echo "Udev rule already exists in $UDEV_RULES_FILE"
 fi
 
+sudo ip link set can0 txqueuelen 1000
 # Reload udev rules
 echo "Reloading udev rules"
 sudo udevadm control --reload-rules
 sudo udevadm trigger
 
 echo "Udev rule installation complete."
+
 
 #-------------------------------------------------------------------
 echo ""

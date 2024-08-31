@@ -71,28 +71,56 @@ def loop_sequence(file_path: str):
     global stop_event, last_step_info
     sequence_df = pd.read_csv(file_path)
 
+    print(sequence_df)
     while not stop_event.is_set():
         try:
             for i, row in sequence_df.iterrows():
                 if stop_event.is_set():
                     break
                 
-                # Execute the instruction and get the result
-                elapsed_time, warning_msg = servo_controller.execute_instruction(row['Degrees'], row['Speed'], row['Acceleration'], row['Duration'], row['Label'])
+                print(f"Processing row {i}: {row}")
 
-                # Update last step information
-                last_step_info.update({
-                    "degrees": row['Degrees'],
-                    "speed": row['Speed'],
-                    "acceleration": row['Acceleration'],
-                    "duration": row['Duration'],
-                    "label": row['Label'],
-                    "start_time": datetime.now(),
-                    "step_number": i + 1,  # Step number is 1-based index
-                    "warning": warning_msg,
-                    'elapsed_time':elapsed_time,
-                    "warning": warning_msg
-                })
+                if not row.empty:
+                    try:
+                        # Extract row values with checks for None
+                        degrees = row['Degrees']
+                        speed = row['Speed']
+                        acceleration = row['Acceleration']
+                        duration = row['Duration']
+                        label = row['Label']
+
+                        # Check if any required field is None
+                        if any(x is None for x in [degrees, speed, acceleration, duration, label]):
+                            print(f"One or more required fields are None in row {i}. Skipping this row.")
+                            continue
+
+                        # Debugging information
+                        print(f"Executing instruction: Degrees={degrees}, Speed={speed}, Acceleration={acceleration}, Duration={duration}, Label={label}")
+                        
+                        # Execute the instruction and get the result
+                        elapsed_time, warning_msg = servo_controller.execute_instruction(degrees, speed, acceleration, duration, label)
+
+                        # Update last step information
+                        last_step_info.update({
+                            "degrees": degrees,
+                            "speed": speed,
+                            "acceleration": acceleration,
+                            "duration": duration,
+                            "label": label,
+                            "start_time": datetime.now(),
+                            "step_number": i + 1,  # Step number is 1-based index
+                            "warning": warning_msg,
+                            "elapsed_time": elapsed_time
+                        })
+
+                    except TypeError as e:
+                        print(f"Error accessing row data at step {i}: {e}")
+                        break
+                    except Exception as e:
+                        print(f"Unexpected error at step {i}: {e}")
+                        break
+                else:
+                    print(f"Skipping empty row {i}")
 
         except Exception as e:
             print(f"Error executing sequence: {e}")

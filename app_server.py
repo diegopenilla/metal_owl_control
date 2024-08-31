@@ -19,8 +19,8 @@ def fetch_last_step():
     
 def fetch_last_step_info(data=None):
     if data:
-        step_number = data['step_number']
-        if step_number is not None:
+        if data['step_number'] is not None:
+            step_number = data.get("step_number")
             step_number_display = step_number - 1
         else:
             step_number_display = "N/A"
@@ -232,9 +232,12 @@ with st.expander("Show Manual"):
 # Periodically fetch and update the last step information
 while True:
     data = fetch_last_step()
-    info_text, warning = fetch_last_step_info(data)
-    info_placeholder.markdown(info_text)  # Update the info box with the latest data  
-    if warning:
-        warning_msg = f"Step Number {data['step_number']} - {warning}"
-        warning_placeholder.error(warning_msg)
-    time.sleep(0.2)
+    if type(data) == str:
+        st.warning("fetch last step failed... server error")
+    else:
+        info_text, warning = fetch_last_step_info(data)
+        info_placeholder.markdown(info_text)  # Update the info box with the latest data  
+        if warning:
+            warning_msg = f"Step Number {data['step_number']} - {warning}"
+            warning_placeholder.error(warning_msg)
+        time.sleep(0.3)
