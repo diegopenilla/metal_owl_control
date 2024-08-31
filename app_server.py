@@ -61,7 +61,7 @@ with st.sidebar:
     with st.container():
         st.session_state['speed'] = st.number_input("Speed", min_value=1, max_value=1000, value=st.session_state['speed'])
         st.session_state['degrees'] = st.number_input("Position (deg)", value=st.session_state['degrees'], step=1)
-        st.session_state['acceleration'] = st.number_input("Acceleration", min_value=0, max_value=1000, value=st.session_state['acceleration'])  # New field for acceleration
+        st.session_state['acceleration'] = int(st.number_input("Acceleration", min_value=0, max_value=1000, value=st.session_state['acceleration']))  # New field for acceleration
         label = st.text_input("Label", value="Command Label")
         duration = st.number_input("Duration (seconds)", min_value=0.1, value=1.0)
 
@@ -98,7 +98,15 @@ with st.sidebar:
 # Main content
 if st.button("Play"):
     if selected_file:
-        response = requests.get(f"{API_URL}/run_sequence", params={"file_path": os.path.join("instructions", selected_file)})
+        # Assuming `sequence` is the variable holding the sequence data
+        sequence_df = st.session_state.get('sequence_df')
+
+        # Define the temporary file path
+        temp_file_path = os.path.join("instructions", "temp.csv")
+        sequence_df.to_csv(temp_file_path, index=False)
+
+        # Send the temporary file path to the API
+        response = requests.get(f"{API_URL}/run_sequence", params={"file_path": temp_file_path})
         if response.status_code == 200:
             st.success(response.json()['message'])
         else:

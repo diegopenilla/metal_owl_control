@@ -1,6 +1,7 @@
+# server.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 import uvicorn
 import os
 import pandas as pd
@@ -53,6 +54,7 @@ last_step_info = {
     "elapsed_time": None,
     "sequence_file": None,
     "step_number": None,
+    "warning": None,  # New field to store warnings
 }
 
 class PositionCommand(BaseModel):
@@ -68,13 +70,15 @@ class SequenceCommand(BaseModel):
 def loop_sequence(file_path: str):
     global stop_event, last_step_info
     sequence_df = pd.read_csv(file_path)
-    last_step_info['sequence_file'] = file_path
 
     while not stop_event.is_set():
         try:
             for i, row in sequence_df.iterrows():
                 if stop_event.is_set():
                     break
+                
+                # Execute the instruction and get the result
+                elapsed_time, warning_msg = servo_controller.execute_instruction(row['Degrees'], row['Speed'], row['Acceleration'], row['Duration'], row['Label'])
 
                 # Update last step information
                 last_step_info.update({
@@ -85,26 +89,35 @@ def loop_sequence(file_path: str):
                     "label": row['Label'],
                     "start_time": datetime.now(),
                     "step_number": i + 1,  # Step number is 1-based index
+                    "warning": warning_msg,
+                    'elapsed_time':elapsed_time,
+                    "warning": warning_msg
                 })
-                
-                # Execute the instruction
-                servo_controller.execute_instruction(row['Degrees'], row['Speed'], row['Acceleration'], row['Duration'], row['Label'])
-
-                # Reset the elapsed time after execution
-                last_step_info['elapsed_time'] = None
 
         except Exception as e:
-            # print(f"Error executing sequence: {e}")
-            # print(e)
+            print(f"Error executing sequence: {e}")
             break
 
         if not stop_event.is_set():
             print("Sequence completed. Restarting...")
 
 @app.get("/execute_position")
-def execute_position(degrees: int, speed: int, acceleration: int, duration: float, label: str ):
+def execute_position(degrees: int, speed: int, acceleration: int, duration: float, label: str):
+    global last_step_info
     try:
-        servo_controller.execute_instruction(degrees, speed, acceleration, duration, label)
+        elapsed_time, warning_msg = servo_controller.execute_instruction(degrees, speed, acceleration, duration, label)
+        last_step_info.update({
+            "degrees": degrees,
+            "speed": speed,
+            "acceleration": acceleration,
+            "duration": duration,
+            "label": label,
+            "start_time": datetime.now(),
+            "elapsed_time": elapsed_time,
+            "warning": warning_msg,
+            "step_number": None,  # Not part of a sequence, so no step number
+            "sequence_file": None,  # Not part of a sequence, so no sequence file
+        })
         return {"status": "success", "message": f"Executed {label} to {degrees} degrees at speed {speed} with acceleration {acceleration}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -148,16 +161,9 @@ def get_last_step_info():
     if last_step_info['start_time']:
         last_step_info['elapsed_time'] = (datetime.now() - last_step_info['start_time']).total_seconds()
     
-    return {
-        "degrees": servo_controller.get_motor_degrees(),
-        "speed": last_step_info['speed'],
-        "acceleration": last_step_info['acceleration'],
-        "duration": last_step_info['duration'],
-        "label": last_step_info['label'],
-        "elapsed_time": last_step_info['elapsed_time'],
-        "sequence_file": last_step_info['sequence_file'],
-        "step_number": last_step_info['step_number'],
-    }
+    last_step_info['degrees'] = servo_controller.get_motor_degrees()
+        
+    return last_step_info
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=9120)

@@ -58,21 +58,25 @@ class ServoController:
         position_units = self.degrees_to_units(degrees)
         self.servo.run_motor_absolute_motion_by_axis(speed, acceleration, position_units)
 
-        # Wait for the motor to stop or until the timeout
-        motor_stopped = self.wait_for_motor_idle(duration)
+        # Wait until the motor reaches the target position, ignoring the duration for now
+        while self.servo.is_motor_running():
+            time.sleep(0.1)  # Sleep briefly to prevent busy waiting
 
-        # Calculate remaining time to match the specified duration
+        # Calculate the actual time taken to reach the target position
         elapsed_time = time.perf_counter() - start_time
-        remaining_time = duration - elapsed_time
 
+        # If the motor took longer than the specified duration, generate a warning
+        if elapsed_time > duration:
+            warning_msg = f"Warning: {label} did not complete within the specified duration of {duration} seconds, the actual time taken was: {elapsed_time:.2f} seconds."
+            print(f"**[{self.format_time(datetime.now())}]** {warning_msg}")
+            return elapsed_time, warning_msg
+
+        # If the motor completed within the specified duration, calculate the remaining time
+        remaining_time = duration - elapsed_time
         if remaining_time > 0:
             time.sleep(remaining_time)  # Sleep to complete the total duration
 
-        end_time_dt = datetime.now()
-        if motor_stopped:
-            print(f"**[{self.format_time(end_time_dt)}]** {label} completed successfully.")
-        else:
-            print(f"**[{self.format_time(end_time_dt)}]** {label} did not complete within the specified duration.")
+        return elapsed_time, None  # No warning, operation completed in time
 
     def execute_sequence_from_csv(self, file_path):
         """Execute a sequence of instructions from a CSV file."""
