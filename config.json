@@ -1,5 +1,5 @@
 {
-    "degrees_max": 360,
-    "speed_max": 100,
-    "acceleration_max": 255
+    "degrees_max": 180,
+    "speed_max": 600,
+    "acceleration_max": 10
   }

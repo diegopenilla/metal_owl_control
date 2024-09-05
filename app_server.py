@@ -67,7 +67,7 @@ if 'degrees' not in st.session_state:
 if 'speed' not in st.session_state:
     st.session_state['speed'] = 50
 if 'acceleration' not in st.session_state:
-    st.session_state['acceleration'] = 0  # Default value for acceleration
+    st.session_state['acceleration'] = 5  # Default value for acceleration
 if 'sequence_df' not in st.session_state:
     st.session_state['sequence_df'] = pd.read_csv(default_sequence_file)
 
@@ -91,9 +91,9 @@ with st.sidebar:
     # Motor Control Section
     st.header("Add Step")
     with st.container():
-        st.session_state['speed'] = st.number_input("Speed", min_value=1, max_value=1000, value=st.session_state['speed'])
+        st.session_state['speed'] = st.number_input("Speed", min_value=1, max_value=600, value=st.session_state['speed'])
         st.session_state['degrees'] = st.number_input("Position (deg)", value=st.session_state['degrees'], step=1)
-        st.session_state['acceleration'] = int(st.number_input("Acceleration", min_value=0, max_value=1000, value=st.session_state['acceleration']))  # New field for acceleration
+        st.session_state['acceleration'] = int(st.number_input("Acceleration", min_value=0, max_value=50, value=st.session_state['acceleration']))  # New field for acceleration
         label = st.text_input("Label", value="Command Label")
         duration = st.number_input("Duration (seconds)", min_value=0.1, value=1.0)
 
