@@ -39,7 +39,7 @@ echo "Installing udev rules..."
 echo "=============================="
 
 # Define the udev rule for the Candlelight device
-UDEV_RULE='ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="606f", RUN+="/sbin/ip link set can0 up type can bitrate 500000"'
+UDEV_RULE='ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="1d50", ATTRS{idProduct}=="606f", RUN+="/sbin/ip link set can0 up type can bitrate 500000 txqueuelen 1000"'
 
 # Define the udev rules file path
 UDEV_RULES_FILE='/etc/udev/rules.d/99-socketcan.rules'
